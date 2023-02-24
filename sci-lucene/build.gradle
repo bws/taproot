@@ -1,0 +1,28 @@
+/*
+ * Gradle build file for sci-lucene
+ *
+ */
+
+plugins {
+    id 'application' 
+}
+
+repositories {
+    mavenCentral() 
+}
+
+dependencies {
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.9.1' 
+
+    implementation 'com.google.guava:guava:31.1-jre' 
+    implementation group: 'net.java.dev.jna', name: 'jna', version: '5.13.0'
+}
+
+application {
+    applicationDefaultJvmArgs = ["-Djava.library.path=" + file("mfem-utils/build/lib/main/debug").absolutePath]
+    mainClass = 'sci.lucene.IndexedMesh' 
+}
+
+tasks.named('test') {
+    useJUnitPlatform() 
+}
