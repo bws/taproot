@@ -8,7 +8,7 @@ extern "C" {
 #endif
 
 typedef struct laghos_mesh_point {
-    int element_id;
+    size_t element_id;
     double x, y, z;
     double e, rho, v_x, v_y, v_z;
 } laghos_mesh_point_t;

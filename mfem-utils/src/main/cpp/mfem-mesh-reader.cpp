@@ -77,20 +77,20 @@ int mfem_read_laghos_mesh(int mlm_handle, mfem_mesh_iterator_t* begin, laghos_me
     // Read an element and attempt to add its vertexes as points
     const Element* const* elements = mlm.mesh->GetElementsArray();
     long long nEles = mlm.mesh->GetNE();
-    cerr << "Number of elements base: " << nEles 
+    cerr << "Sizeof point: " << sizeof(laghos_mesh_point_t) 
+         << "Number of elements base: " << nEles 
          << " Energy " << energyFES->GetMesh()->GetNE()
          << " Density " << densityFES->GetMesh()->GetNE()
          << " Velocity " << velocityFES->GetMesh()->GetNE()
          << " Begin " << *begin << endl;
     Array<double> energies, densities, v_xs, v_ys, v_zs;
     for (int i = *begin; i < nEles; i++) {
-        // TODO Figure out how to read e, rho, v
         mlm.e_gf->GetNodalValues(*begin + i, energies, 1);
         mlm.rho_gf->GetNodalValues(*begin + i, densities, 1);
         mlm.v_gf->GetNodalValues(*begin + i, v_xs, 1);
         mlm.v_gf->GetNodalValues(*begin + i, v_ys, 2);
         mlm.v_gf->GetNodalValues(*begin + i, v_zs, 3);
-        cerr << "Values " << energies.Size() << " " << densities.Size() << " " << v_xs.Size() << endl;
+
         // Count the vertexes for this element
         const Element* ele = elements[*begin + i];
         size_t nv = ele->GetNVertices();

@@ -8,7 +8,7 @@
 #include <string>
 using namespace std;
 
-const char* meshDir = "/home/bsettlemyer/workspace/glass-ceiling/data";
+const char* meshDir = "/home/bsettlemyer/workspace/taproot/data";
 
 void testOpen() {
     // Test opening a valid file
