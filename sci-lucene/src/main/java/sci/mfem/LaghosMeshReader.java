@@ -13,12 +13,12 @@ public class LaghosMeshReader extends MFEMMeshReader {
 
     /** The size of a Laghos struct in bytes */
     final int LAGHOS_POINT_SIZE = (1 * Native.getNativeSize(Long.TYPE)) + (8 * Native.getNativeSize(Double.TYPE));
-
-    @FieldOrder({"elementId", "x", "y", "z", "e", "rho", "v_x", "v_y", "v_z"})
+    
+    @FieldOrder({"x", "y", "z", "e", "rho", "v_x", "v_y", "v_z", "elementId"})
     public class LaghosPoint extends Structure {
-        public int elementId;
         public double x, y, z;
         public double e, rho, v_x, v_y, v_z;
+        public int elementId;
 
         public LaghosPoint(Pointer p) {
             super(p);

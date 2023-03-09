@@ -8,9 +8,9 @@ extern "C" {
 #endif
 
 typedef struct laghos_mesh_point {
-    size_t element_id;
     double x, y, z;
     double e, rho, v_x, v_y, v_z;
+    size_t element_id;
 } laghos_mesh_point_t;
 
 typedef int mfem_mesh_iterator_t;
