@@ -15,25 +15,28 @@ typedef struct mfem_laghos_mesh {
     GridFunction* rho_gf;
     GridFunction* v_gf;
     GridFunction* x_gf;
+    FiniteElementSpace* e_fes;
+    FiniteElementSpace* rho_fes;
+    FiniteElementSpace* v_fes;
 } mfem_laghos_mesh_t;
 
 static std::vector<Mesh*> meshes;
 static std::vector<mfem_laghos_mesh_t> mlmv;
 
-int mfem_open_mesh(const char* mesh_filename) {
+int mfem_mesh_open(const char* mesh_filename) {
     Mesh* m = new Mesh(mesh_filename, 1);
     int handle = meshes.size();
     meshes.push_back(m);
     return handle;
 }
 
-int mfem_close_mesh(int mesh_handle) {
+int mfem_mesh_close(int mesh_handle) {
     Mesh* m = meshes[mesh_handle];
     delete m;
     return 0;
 }
 
-int mfem_open_laghos_mesh(const char* mesh_file, const char* e_gf_file, const char* rho_gf_file, const char* v_gf_file) {
+int mfem_laghos_mesh_open(const char* mesh_file, const char* e_gf_file, const char* rho_gf_file, const char* v_gf_file) {
     mfem_laghos_mesh_t lm = {0};
     int handle = mlmv.size();
 
@@ -49,11 +52,16 @@ int mfem_open_laghos_mesh(const char* mesh_file, const char* e_gf_file, const ch
     v_gf_s.open(v_gf_file);
     lm.v_gf = new GridFunction(lm.mesh, v_gf_s);
 
+    // Create the FESpaces for each of the mesh fields
+    lm.e_fes = lm.e_gf->FESpace();
+    lm.rho_fes = lm.rho_gf->FESpace();
+    lm.v_fes = lm.v_gf->FESpace();
+    
     mlmv.push_back(lm);
     return handle;
 }
 
-int mfem_close_laghos_mesh(int mesh_handle) {
+int mfem_laghos_mesh_close(int mesh_handle) {
     mfem_laghos_mesh mlm = mlmv[mesh_handle];
     delete mlm.mesh;
     delete mlm.e_gf;
@@ -62,37 +70,26 @@ int mfem_close_laghos_mesh(int mesh_handle) {
     return 0;
 }
 
-int mfem_read_laghos_mesh(int mlm_handle, mfem_mesh_iterator_t* begin, laghos_mesh_point_t* points, size_t npoints) {
+int mfem_laghos_mesh_read(int mlm_handle, mfem_mesh_iterator_t* begin, laghos_mesh_point_t* points, size_t npoints) {
 
     // Retrieve the mesh from the global mesh array
     mfem_laghos_mesh_t mlm = mlmv[mlm_handle];
     int eleCount = 0;
     int ptCount = 0;
 
-    // Create the FESpaces for each of the mesh fields
-    FiniteElementSpace* energyFES = mlm.e_gf->FESpace();
-    FiniteElementSpace* densityFES = mlm.rho_gf->FESpace();
-    FiniteElementSpace* velocityFES = mlm.v_gf->FESpace();
-    
     // Read an element and attempt to add its vertexes as points
     const Element* const* elements = mlm.mesh->GetElementsArray();
     long long nEles = mlm.mesh->GetNE();
-    cerr << "Sizeof point: " << sizeof(laghos_mesh_point_t) 
-         << "Number of elements base: " << nEles 
-         << " Energy " << energyFES->GetMesh()->GetNE()
-         << " Density " << densityFES->GetMesh()->GetNE()
-         << " Velocity " << velocityFES->GetMesh()->GetNE()
-         << " Begin " << *begin << endl;
     Array<double> energies, densities, v_xs, v_ys, v_zs;
     for (int i = *begin; i < nEles; i++) {
-        mlm.e_gf->GetNodalValues(*begin + i, energies, 1);
-        mlm.rho_gf->GetNodalValues(*begin + i, densities, 1);
-        mlm.v_gf->GetNodalValues(*begin + i, v_xs, 1);
-        mlm.v_gf->GetNodalValues(*begin + i, v_ys, 2);
-        mlm.v_gf->GetNodalValues(*begin + i, v_zs, 3);
+        mlm.e_gf->GetNodalValues(i, energies, 1);
+        mlm.rho_gf->GetNodalValues(i, densities, 1);
+        mlm.v_gf->GetNodalValues(i, v_xs, 1);
+        mlm.v_gf->GetNodalValues(i, v_ys, 2);
+        mlm.v_gf->GetNodalValues(i, v_zs, 3);
 
         // Count the vertexes for this element
-        const Element* ele = elements[*begin + i];
+        const Element* ele = elements[i];
         size_t nv = ele->GetNVertices();
 
         // If there is enough space for this element in the point array add it
@@ -101,7 +98,7 @@ int mfem_read_laghos_mesh(int mlm_handle, mfem_mesh_iterator_t* begin, laghos_me
             for (int j = 0; j < nv; j++) {
                 size_t dims = mlm.mesh->Dimension();
                 double* pos = mlm.mesh->GetVertex(vertArray[j]);
-                points[ptCount].element_id = *begin + i;
+                points[ptCount].element_id = i;
                 if (1 <= dims)
                     points[ptCount].x = pos[0];
                 if (2 <= dims)
@@ -118,7 +115,7 @@ int mfem_read_laghos_mesh(int mlm_handle, mfem_mesh_iterator_t* begin, laghos_me
             eleCount += 1;
         }
         else {
-            cerr << "No space for new elements pc: " << ptCount << " ec: " << eleCount << endl;
+            //cerr << "Warning: Unable to pack last cell. Cell points req: " << ptCount << " Space avail: " << eleCount << endl;
             break;
         }
     }
@@ -126,3 +123,8 @@ int mfem_read_laghos_mesh(int mlm_handle, mfem_mesh_iterator_t* begin, laghos_me
     return ptCount;
 }
 
+int mfem_laghos_mesh_at_end(int mlm_handle, const mfem_mesh_iterator_t* iter) {
+    mfem_laghos_mesh_t mlm = mlmv[mlm_handle];
+    long long nEles = mlm.mesh->GetNE();
+    return (*iter >= nEles);
+}

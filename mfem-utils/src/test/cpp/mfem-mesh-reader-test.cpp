@@ -8,71 +8,146 @@
 #include <string>
 using namespace std;
 
-const char* meshDir = "/home/bsettlemyer/workspace/taproot/data";
+// Taproot project directory
+const char* PROJECT_ROOT_DIR = "../../../../";
 
-void testOpen() {
-    // Test opening a valid file
-    string meshFile = string(meshDir) + string("/snoise_60_mesh"); 
-    //int mh = mfem_open_mesh(meshFile.c_str());
-    //assert(mh >= 0);
+// External data directory
+const char* EXTERNAL_DATA_DIR = "../../../../../mesh";
 
-    // Test opening an invalid file
-    //meshFile = string(meshDir) + string("/invalid-file-name"); 
-    //mh = mfem_open_mesh(meshFile.c_str());
-    //assert(mh == -1);
 
-    cerr << "testOpen() Complete" << endl;
-}
-
-void testClose() {
-
-    string meshFile = string(meshDir) + string("/snoise_60_mesh"); 
-    //int mh = mfem_open_mesh(meshFile.c_str());
-    //int rc = mfem_close_mesh(mh);
-    //assert(mh >= 0);
-    //assert(rc == 0);
-    cerr << "testClose() Complete" << endl;
-}
-
-void testRead() {
-
+void test_mfem_laghos_mesh_open() {
+    string meshDir = string(PROJECT_ROOT_DIR) + "/data/1m_mesh";
     string meshFile = string(meshDir) + string("/snoise_60_mesh"); 
     string eGFFile = string(meshDir) + string("/snoise_60_e"); 
     string rhoGFFile = string(meshDir) + string("/snoise_60_rho"); 
     string vGFFile = string(meshDir) + string("/snoise_60_v"); 
-    int mh = mfem_open_laghos_mesh(meshFile.c_str(), 
+    int mh = mfem_laghos_mesh_open(meshFile.c_str(), 
+                                   eGFFile.c_str(), 
+                                   rhoGFFile.c_str(), 
+                                   vGFFile.c_str());
+    assert(mh >= 0);
+    int rc = mfem_laghos_mesh_close(mh);
+    cerr << __func__ << " Complete" << endl;
+}
+
+void test_mfem_laghos_mesh_close() {
+    string meshDir = string(PROJECT_ROOT_DIR) + "/data/1m_mesh";
+    string meshFile = string(meshDir) + string("/snoise_60_mesh"); 
+    string eGFFile = string(meshDir) + string("/snoise_60_e"); 
+    string rhoGFFile = string(meshDir) + string("/snoise_60_rho"); 
+    string vGFFile = string(meshDir) + string("/snoise_60_v"); 
+    int mh = mfem_laghos_mesh_open(meshFile.c_str(), 
+                                   eGFFile.c_str(), 
+                                   rhoGFFile.c_str(), 
+                                   vGFFile.c_str());
+    assert(mh >= 0);
+    int rc = mfem_laghos_mesh_close(mh);
+    assert(rc == 0);
+    cerr << __func__ << " Complete" << endl;
+}
+
+void test_mfem_laghos_mesh_read() {
+    string meshDir = string(PROJECT_ROOT_DIR) + "/data/1m_mesh";
+    string meshFile = string(meshDir) + string("/snoise_60_mesh"); 
+    string eGFFile = string(meshDir) + string("/snoise_60_e"); 
+    string rhoGFFile = string(meshDir) + string("/snoise_60_rho"); 
+    string vGFFile = string(meshDir) + string("/snoise_60_v"); 
+    int mh = mfem_laghos_mesh_open(meshFile.c_str(), 
                                    eGFFile.c_str(), 
                                    rhoGFFile.c_str(), 
                                    vGFFile.c_str());
     assert(mh >= 0);
 
-    // Read all of the mesh elements into an array
-    laghos_mesh_point_t points[128] = {0};
+    // Read the first 128 mesh elements into an array
+    laghos_mesh_point_t points[65536] = {0};
     mfem_mesh_iterator_t iter = 0;
+    int count = mfem_laghos_mesh_read(mh, &iter, points, 128);
+    assert(128 == count);
+    for (int i = 0; i < count; i++) {
+        assert(0 != points[i].x);
+        assert(0 != points[i].y);
+        assert(0 != points[i].z);
+        assert(0 != points[i].e);
+        assert(0 != points[i].rho);
+        assert(0 != points[i].v_x);
+        assert(0 != points[i].v_y);
+        assert(0 != points[i].v_z);
+    }
+    assert(16 == iter);
 
-    int count = mfem_read_laghos_mesh(mh, &iter, points, 128);
-    cerr << "Points returned: " << count << endl;
-    for (int i = 0; i < count; i++)
-        cerr << "Point " << i << " " << points[i].element_id << " <x,y,z>=<" 
-             << points[i].x << "," 
-             << points[i].y << "," 
-             << points[i].z << "> e=" 
-             << points[i].e << " rho=" 
-             << points[i].rho << " v_x=" 
-             << points[i].v_x << " v_y=" 
-             << points[i].v_y << " v_z=" 
-             << points[i].v_z << " " 
-             << endl;
-    assert(count == 128);
+    // Read through the remaining points 65536 at a time
+    while (!mfem_laghos_mesh_at_end(mh, &iter)) {
+        count = mfem_laghos_mesh_read(mh, &iter, points, 2048);
+    }
+    assert(65536 == iter);
 
-    int rc = mfem_close_laghos_mesh(mh);
+    int rc = mfem_laghos_mesh_close(mh);
     assert(rc == 0);
-    cerr << "testRead() Complete" << endl;
+    cerr << __func__ << " Complete" << endl;
+}
+
+void test_mfem_laghos_mesh_at_end() {
+    string meshDir = string(PROJECT_ROOT_DIR) + "/data/1m_mesh";
+    string meshFile = string(meshDir) + string("/snoise_60_mesh"); 
+    string eGFFile = string(meshDir) + string("/snoise_60_e"); 
+    string rhoGFFile = string(meshDir) + string("/snoise_60_rho"); 
+    string vGFFile = string(meshDir) + string("/snoise_60_v"); 
+    int mh = mfem_laghos_mesh_open(meshFile.c_str(), 
+                                   eGFFile.c_str(), 
+                                   rhoGFFile.c_str(), 
+                                   vGFFile.c_str());
+    size_t ele_count = 65536;
+
+    // Test at the beginning
+    mfem_mesh_iterator_t begin = 0;
+    assert(false == mfem_laghos_mesh_at_end(mh, &begin));
+
+    // Test at the last valid index
+    mfem_mesh_iterator_t last_valid = ele_count - 1;
+    assert(false == mfem_laghos_mesh_at_end(mh, &last_valid));
+
+    // Test beyond the index
+    mfem_mesh_iterator_t end = ele_count;
+    assert(true == mfem_laghos_mesh_at_end(mh, &end));
+
+    int rc = mfem_laghos_mesh_close(mh);
+    assert(rc == 0);
+    cerr << __func__ << " Complete" << endl;
+}
+
+void test_mfem_laghos_mesh_read_30m() {
+    string meshDir = string(EXTERNAL_DATA_DIR) + "/30m";
+    string meshFile = string(meshDir) + string("/30m_60_mesh"); 
+    string eGFFile = string(meshDir) + string("/30m_60_e"); 
+    string rhoGFFile = string(meshDir) + string("/30m_60_rho"); 
+    string vGFFile = string(meshDir) + string("/30m_60_v"); 
+    int mh = mfem_laghos_mesh_open(meshFile.c_str(), 
+                                   eGFFile.c_str(), 
+                                   rhoGFFile.c_str(), 
+                                   vGFFile.c_str());
+    assert(mh >= 0);
+
+    // Read through all of the points
+    laghos_mesh_point_t points[65536] = {0};
+    mfem_mesh_iterator_t iter = 0;
+    int count = 0;
+    while (!mfem_laghos_mesh_at_end(mh, &iter)) {
+        count = mfem_laghos_mesh_read(mh, &iter, points, 2048);
+    }
+    assert(4194304 == iter);
+
+    int rc = mfem_laghos_mesh_close(mh);
+    assert(rc == 0);
+    cerr << __func__ << " Complete" << endl;
 }
 
 int main() {
-    testOpen();
-    testClose();
-    testRead();
+    test_mfem_laghos_mesh_open();
+    test_mfem_laghos_mesh_close();
+    test_mfem_laghos_mesh_read();
+    test_mfem_laghos_mesh_at_end();
+
+    test_mfem_laghos_mesh_read_30m();
+
     return 0;
 }

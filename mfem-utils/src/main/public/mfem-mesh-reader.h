@@ -16,18 +16,18 @@ typedef struct laghos_mesh_point {
 typedef int mfem_mesh_iterator_t;
 
 /**
- * @return a handle to an MFEM mesh from laghos
+ * @return a handle to an MFEM mesh from Laghos
  */
-int mfem_open_laghos_mesh(const char* mesh_file, const char* e_gf_file,
+int mfem_laghos_mesh_open(const char* mesh_file, const char* e_gf_file,
                           const char* rho_gf_file, const char* v_gf_file);
 
 
 /**
- * Close an MFEM mesh
+ * Close an MFEM mesh from Laghos
  * 
  * @return 0 on success
  */
-int mfem_close_laghos_mesh(int lmhandle);
+int mfem_laghos_mesh_close(int lmhandle);
 
 /**
  * Read a portion of the globally distributed MFEM mesh
@@ -41,7 +41,15 @@ int mfem_close_laghos_mesh(int lmhandle);
  *       vertices are laghos_mesh_points. This function will only read
  *       entire elements. 
  */
-int mfem_read_laghos_mesh(int mhandle, mfem_mesh_iterator_t* cur, laghos_mesh_point_t* points, size_t npoints);
+int mfem_laghos_mesh_read(int mhandle, mfem_mesh_iterator_t* cur, laghos_mesh_point_t* points, size_t npoints);
+
+/**
+ * @return true if all elements have been iterator over
+ * 
+ * @param[in] the mesh handle
+ * @param[in] the mesh iterator
+ */
+int mfem_laghos_mesh_at_end(int mhandle, const mfem_mesh_iterator_t* cur);
 
 #ifdef __cplusplus
 }

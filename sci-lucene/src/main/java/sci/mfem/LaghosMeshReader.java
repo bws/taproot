@@ -1,7 +1,11 @@
 package sci.mfem;
 
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
+
 import com.sun.jna.Memory;
 import com.sun.jna.Native;
+import com.sun.jna.NativeLibrary;
 import com.sun.jna.Pointer;
 import com.sun.jna.PointerType;
 import com.sun.jna.ptr.IntByReference;
@@ -11,6 +15,9 @@ import com.sun.jna.Structure.FieldOrder;
 
 public class LaghosMeshReader extends MFEMMeshReader {
 
+    /** The path to the mfem shared object */
+    static final String SHARED_OBJ_DIR = "/home/bsettlemyer/workspace/taproot/mfem-utils/build/lib/main/debug";
+
     /** The size of a Laghos struct in bytes */
     final int LAGHOS_POINT_SIZE = (1 * Native.getNativeSize(Long.TYPE)) + (8 * Native.getNativeSize(Double.TYPE));
     
@@ -18,13 +25,27 @@ public class LaghosMeshReader extends MFEMMeshReader {
     public class LaghosPoint extends Structure {
         public double x, y, z;
         public double e, rho, v_x, v_y, v_z;
-        public int elementId;
+        public long elementId;
 
         public LaghosPoint(Pointer p) {
             super(p);
             read();
         }
 
+        public LaghosPoint(byte[] bytes) {
+            System.out.println("Creating LaghosPoint with bytes len: " + bytes.length);
+            ByteBuffer buf = ByteBuffer.wrap(bytes);
+            buf.order(ByteOrder.LITTLE_ENDIAN);
+            this.x = buf.getFloat(0*8);
+            this.y = buf.getFloat(1*8);
+            this.z = buf.getFloat(2*8);
+            this.e = buf.getFloat(3*8);
+            this.rho = buf.getFloat(4*8);
+            this.v_x = buf.getFloat(5*8);
+            this.v_y = buf.getFloat(6*8);
+            this.v_z = buf.getFloat(7*8);
+            this.elementId = buf.getLong(8*8);
+        }
 
         public String toString() {
             String s = "Id: " + this.elementId;
@@ -38,12 +59,14 @@ public class LaghosMeshReader extends MFEMMeshReader {
      * Create a LaghosMeshReader
      */
     public LaghosMeshReader(String meshFile, String eFile, String rhoFile, String vFile) {
+        // Set the load path for the native code
+        NativeLibrary.addSearchPath("mfem-utils", SHARED_OBJ_DIR);
         MFEMUtils lib = MFEMUtils.INSTANCE;
-        this.meshHandle = lib.mfem_open_laghos_mesh(meshFile, eFile, rhoFile, vFile);
+        this.meshHandle = lib.mfem_laghos_mesh_open(meshFile, eFile, rhoFile, vFile);
         this.meshCurrent = new IntByReference(0);
 
-        // Create a buffer to hold 1M Laghos points
-        this.pointsBufferAllocSize = 1024 * 1024 * LAGHOS_POINT_SIZE;
+        // Create a buffer to hold 64k Laghos points (about 4MB worth)
+        this.pointsBufferAllocSize = 4*1024 * LAGHOS_POINT_SIZE;
         this.pointsBuffer = new Memory(this.pointsBufferAllocSize);
 
         // Describe the current point
@@ -56,31 +79,28 @@ public class LaghosMeshReader extends MFEMMeshReader {
      * Beginning at point 0, return the LaghosPoints in order
      */
     public LaghosPoint getNextLaghosPoint() {
-        // Fetch the next batch of LaghosPoints
-        if (this.pointCurrent >= (pointBegin + pointsBuffered)) {
-            this.pointBegin += this.pointsBuffered;
-            this.pointsBuffered = getLaghosPoints(this.pointsBuffer, this.pointsBufferAllocSize);
-        }
-
+        byte[] bytes = getNextLaghosPointAsBytes();
         LaghosPoint lp = null;
-        if (0 != this.pointsBuffered) {
-            long offset = this.pointCurrent * LAGHOS_POINT_SIZE;
-            lp = new LaghosPoint(pointsBuffer.share(offset));
-            this.pointCurrent++;
+        if (null != bytes) {
+            lp = new LaghosPoint(bytes);
+        } else {
+            System.out.println("No bytes buffered");
         }
         return lp;
     }
 
     public byte[] getNextLaghosPointAsBytes() {
-        // Fetch the next batch of LaghosPoints
+        // If the next point isn't buffered, fetch a new buffer of points
         if (this.pointCurrent >= (pointBegin + pointsBuffered)) {
-            this.pointBegin += this.pointsBuffered;
-            this.pointsBuffered = getLaghosPoints(this.pointsBuffer, this.pointsBufferAllocSize);
+            this.pointsBuffered = fetchLaghosPoints(this.pointsBuffer, this.pointsBufferAllocSize);
+            this.pointBegin = this.pointCurrent;
+            System.out.println("Points fetched Current: " + this.pointCurrent + " Begin: " + this.pointBegin + " Count: " + this.pointsBuffered);
         }
 
         byte[] packedBytes = null;
         if (0 != this.pointsBuffered) {
-            long offset = this.pointCurrent * LAGHOS_POINT_SIZE;
+            long offset = (this.pointCurrent - this.pointBegin) * LAGHOS_POINT_SIZE;
+            System.out.println("Point construct Current: " + this.pointCurrent + " Begin: " + this.pointBegin + " Count: " + this.pointsBuffered + " off:" + offset);
             packedBytes = pointsBuffer.getByteArray(offset, LAGHOS_POINT_SIZE);
             this.pointCurrent++;
         }
@@ -91,17 +111,23 @@ public class LaghosMeshReader extends MFEMMeshReader {
     /**
      * This function reads a buffer full of LaghosPoints.
      * 
-     * @return the number of points written into the pointsBuffer
+     * @return the number of points loaded into the pointsBuffer
      */
-    protected long getLaghosPoints(Pointer pointsBuffer, long bufferSize) {
+    protected long fetchLaghosPoints(Pointer pointsBuffer, long bufferSize) {
         MFEMUtils lib = MFEMUtils.INSTANCE;
-        long count = lib.mfem_read_laghos_mesh(this.meshHandle, this.meshCurrent.getPointer(), pointsBuffer, bufferSize);
+        long count = 0;
+        if (0 == lib.mfem_laghos_mesh_at_end(this.meshHandle, this.meshCurrent.getPointer())) {
+            count = lib.mfem_laghos_mesh_read(this.meshHandle, this.meshCurrent.getPointer(), pointsBuffer, bufferSize);
+            pointsBuffered = count;
+        }
+        else {
+            System.out.println("Reached the end of the mesh iter:" + this.meshCurrent.getValue());
+        }
 
         // Count is 0, so set the points buffer to null
         if (0 == count) {
             pointsBuffer = null;
         }
-
         return count; 
     }
 
@@ -117,11 +143,11 @@ public class LaghosMeshReader extends MFEMMeshReader {
     // Total size of the buffer
     long pointsBufferAllocSize;
 
-    // Bytes that contain data in the pointsBuffer
+    // Number of points in the points buffer
     long pointsBuffered;
 
     // Index of the first buffered LaghosPoint
-    int pointBegin;
+    long pointBegin;
 
     // Bytes that contain data in the pointsBuffer
     long pointCurrent;

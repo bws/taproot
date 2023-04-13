@@ -15,8 +15,8 @@ public class IndexedMesh {
 
     final static int TOTAL_LAGHOS_POINTS = 64 * 1024 * 8;
     final static double SECS_PER_NANOSECOND = 1e-9;
-    final int LAGHOS_POINT_NDIMS = 9;
-    final int BKD_LEAF_POINTS = 128;
+    final static int LAGHOS_POINT_NDIMS = 9;
+    final static int BKD_LEAF_POINTS = 128;
 
 
     static void reportTime(String desc, long[] times) {
@@ -71,19 +71,31 @@ public class IndexedMesh {
         return times;
     }
 
+    static LaghosMeshReader loadMesh() {
+        String meshDir = "/home/bsettlemyer/workspace/mesh";
+        //String meshName = "1m";
+        String meshName = "30m";
+        //String meshName = "250m";
+        String meshFile = meshDir + "/" + meshName + "/" + meshName + "_60_mesh";
+        String eFile = meshDir + "/" + meshName + "/" + meshName + "_60_e";
+        String rhoFile = meshDir + "/" + meshName + "/" + meshName + "_60_rho";
+        String vFile = meshDir + "/" + meshName + "/" + meshName + "_60_v";
+        long times[] = new long[2];
+        times[0] = System.nanoTime();
+        LaghosMeshReader lmr = new LaghosMeshReader(meshFile, eFile, rhoFile, vFile);
+        times[1] = System.nanoTime();
+        reportTime(meshName + " mesh loaded: ", times);
+        return lmr;
+    }
     public static void main(String[] args) {
 
         // Set the load path for the native code
         NativeLibrary.addSearchPath("mfem-utils", "/home/bsettlemyer/workspace/taproot/mfem-utils/build/lib/main/debug");
 
-        String meshDir = "/home/bsettlemyer/workspace/taproot/data";
-        String meshFile = meshDir + "/snoise_60_mesh";
-        String eFile = meshDir + "/snoise_60_e";
-        String rhoFile = meshDir + "/snoise_60_rho";
-        String vFile = meshDir + "/snoise_60_v";
 
-        LaghosMeshReader lmr = new LaghosMeshReader(meshFile, eFile, rhoFile, vFile);
-        System.out.println("Created the reader");
+        System.out.println("Loading mesh ...");
+        LaghosMeshReader lmr = loadMesh();
+        System.out.println("Complete");
 
         long[] times = runLuceneSingleTrial(lmr);
         reportTime("Lucene BKWriter Dims=9 IdxDims=1 MaxPts=1024", times);
