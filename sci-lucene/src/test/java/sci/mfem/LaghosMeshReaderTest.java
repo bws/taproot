@@ -25,7 +25,54 @@ class LaghosMeshReaderTest {
         assertEquals(0, 0);
     }
     
+    @Test void TestGetNumElements() {
+        String meshFile = PROJECT_DATA_DIR + "/1m_mesh/snoise_60_mesh";
+        String eFile = PROJECT_DATA_DIR + "/1m_mesh/snoise_60_e";
+        String rhoFile = PROJECT_DATA_DIR + "/1m_mesh/snoise_60_rho";
+        String vFile = PROJECT_DATA_DIR + "/1m_mesh/snoise_60_v";
+        LaghosMeshReader lmr = new LaghosMeshReader(meshFile, eFile, rhoFile, vFile);
+
+        // There should be 65536 elements
+        assertEquals(65536, lmr.getNumElements());
+        lmr.close();
+    }
+
+    @Test void TestGetNumPoints() {
+        String meshFile = PROJECT_DATA_DIR + "/1m_mesh/snoise_60_mesh";
+        String eFile = PROJECT_DATA_DIR + "/1m_mesh/snoise_60_e";
+        String rhoFile = PROJECT_DATA_DIR + "/1m_mesh/snoise_60_rho";
+        String vFile = PROJECT_DATA_DIR + "/1m_mesh/snoise_60_v";
+        LaghosMeshReader lmr = new LaghosMeshReader(meshFile, eFile, rhoFile, vFile);
+
+        // There should be 524288 points
+        assertEquals(524288, lmr.getNumPoints());
+        lmr.close();
+    }
+
     @Test void TestGetNextPoint() {
+        System.err.println("Working Directory = " + System.getProperty("user.dir"));
+        String meshFile = PROJECT_DATA_DIR + "/1m_mesh/snoise_60_mesh";
+        String eFile = PROJECT_DATA_DIR + "/1m_mesh/snoise_60_e";
+        String rhoFile = PROJECT_DATA_DIR + "/1m_mesh/snoise_60_rho";
+        String vFile = PROJECT_DATA_DIR + "/1m_mesh/snoise_60_v";
+        LaghosMeshReader lmr = new LaghosMeshReader(meshFile, eFile, rhoFile, vFile);
+
+        // There should be 65536 points
+        int count = 0;
+        long begin = System.nanoTime();
+        for (int i = 0; i < 4096; i++) {
+            LaghosMeshReader.LaghosPoint lp = lmr.getNextLaghosPoint();
+            assertNotNull(lp);
+        }
+
+        long end = System.nanoTime();
+        double secs = ((double)(end - begin))/(1000*1000*1000);
+        System.out.println("Time to iterate over points: " + secs);
+
+        lmr.close();
+    }
+    
+    @Test void TestGetNextPointAsBytes() {
         System.err.println("Working Directory = " + System.getProperty("user.dir"));
         String meshFile = PROJECT_DATA_DIR + "/1m_mesh/snoise_60_mesh";
         String eFile = PROJECT_DATA_DIR + "/1m_mesh/snoise_60_e";
@@ -36,20 +83,18 @@ class LaghosMeshReaderTest {
         // There should be 65536 point
         int count = 0;
         long begin = System.nanoTime();
-        LaghosMeshReader.LaghosPoint lp = lmr.getNextLaghosPoint();
+        byte lp[] = lmr.getNextLaghosPointAsBytes();
         while (null != lp) {
-            lp = lmr.getNextLaghosPoint();
+            lp = lmr.getNextLaghosPointAsBytes();
             count++;
         }
-        count++;
-        assertEquals(65536, count);
+        assertEquals(524288, count);
 
         long end = System.nanoTime();
-        long secs = end - begin;
+        double secs = ((double)(end - begin))/(1000*1000*1000);
         System.out.println("Time to iterate over points: " + secs);
 
         lmr.close();
         assertEquals(0, 0);
     }
-    
 }

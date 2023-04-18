@@ -26,4 +26,5 @@ Build Lucene for Science
 ./gradlew test
 
 Run Taproot
-./gradlew run
+./gradlew --stop
+./gradlew run --no-daemon

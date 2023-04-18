@@ -115,6 +115,36 @@ void test_mfem_laghos_mesh_at_end() {
     cerr << __func__ << " Complete" << endl;
 }
 
+void test_mfem_laghos_mesh_get_num_elements() {
+    string meshDir = string(PROJECT_ROOT_DIR) + "/data/1m_mesh";
+    string meshFile = string(meshDir) + string("/snoise_60_mesh"); 
+    string eGFFile = string(meshDir) + string("/snoise_60_e"); 
+    string rhoGFFile = string(meshDir) + string("/snoise_60_rho"); 
+    string vGFFile = string(meshDir) + string("/snoise_60_v"); 
+    int mh = mfem_laghos_mesh_open(meshFile.c_str(), 
+                                   eGFFile.c_str(), 
+                                   rhoGFFile.c_str(), 
+                                   vGFFile.c_str());
+    size_t eles = mfem_laghos_mesh_get_num_elements(mh);
+    assert(65536 == eles);
+    cerr << __func__ << " Complete" << endl;
+}
+
+void test_mfem_laghos_mesh_get_num_points() {
+    string meshDir = string(PROJECT_ROOT_DIR) + "/data/1m_mesh";
+    string meshFile = string(meshDir) + string("/snoise_60_mesh"); 
+    string eGFFile = string(meshDir) + string("/snoise_60_e"); 
+    string rhoGFFile = string(meshDir) + string("/snoise_60_rho"); 
+    string vGFFile = string(meshDir) + string("/snoise_60_v"); 
+    int mh = mfem_laghos_mesh_open(meshFile.c_str(), 
+                                   eGFFile.c_str(), 
+                                   rhoGFFile.c_str(), 
+                                   vGFFile.c_str());
+    size_t pts = mfem_laghos_mesh_get_num_points(mh);
+    assert(524288 == pts);
+    cerr << __func__ << " Complete" << endl;
+}
+
 void test_mfem_laghos_mesh_read_30m() {
     string meshDir = string(EXTERNAL_DATA_DIR) + "/30m";
     string meshFile = string(meshDir) + string("/30m_60_mesh"); 
@@ -146,8 +176,9 @@ int main() {
     test_mfem_laghos_mesh_close();
     test_mfem_laghos_mesh_read();
     test_mfem_laghos_mesh_at_end();
-
-    test_mfem_laghos_mesh_read_30m();
+    test_mfem_laghos_mesh_get_num_elements();
+    test_mfem_laghos_mesh_get_num_points();
+    //test_mfem_laghos_mesh_read_30m();
 
     return 0;
 }

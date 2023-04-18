@@ -25,6 +25,11 @@ application {
     mainClass = 'sci.lucene.IndexedMesh' 
 }
 
+jar {
+    manifest {
+       attributes 'Main-Class': application.mainClass
+    }
+}
 tasks.named('test') {
     useJUnitPlatform() 
 }

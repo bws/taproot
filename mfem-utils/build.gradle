@@ -22,6 +22,7 @@ library {
 
 tasks.withType(CppCompile).configureEach {
     compilerArgs.add '-fPIC'
+    compilerArgs.add '-g'
     includes {
         '/home/bsettlemyer/sw/wsl-x86_64/include'
     }

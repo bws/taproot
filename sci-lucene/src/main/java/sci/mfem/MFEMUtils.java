@@ -2,6 +2,7 @@ package sci.mfem;
 
 import com.sun.jna.Library;
 import com.sun.jna.Native;
+import com.sun.jna.ptr.LongByReference;
 import com.sun.jna.Pointer;
 
 /** JNA Class that provides access to the MFEM library */
@@ -18,8 +19,12 @@ public interface MFEMUtils extends Library {
     
     int mfem_lagos_mesh_close(int mesh_handle);
     
-    int mfem_laghos_mesh_read(int mesh_handle, Pointer cur, Pointer pointArray, long npoints);
+    int mfem_laghos_mesh_read(int mesh_handle, LongByReference cur, Pointer pointArray, long npoints);
 
-    int mfem_laghos_mesh_at_end(int mesh_handle, Pointer cur);
+    int mfem_laghos_mesh_at_end(int mesh_handle, LongByReference cur);
+
+    int mfem_laghos_mesh_get_num_elements(int mesh_handle);
+
+    int mfem_laghos_mesh_get_num_points(int mesh_handle);
 
 }

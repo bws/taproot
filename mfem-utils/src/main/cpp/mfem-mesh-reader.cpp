@@ -1,4 +1,5 @@
 #include <iostream>
+#include <cmath>
 #include <vector>
 #include <mfem.hpp>
 #include <mfem/fem/fespace.hpp>
@@ -71,17 +72,20 @@ int mfem_laghos_mesh_close(int mesh_handle) {
 }
 
 int mfem_laghos_mesh_read(int mlm_handle, mfem_mesh_iterator_t* begin, laghos_mesh_point_t* points, size_t npoints) {
-
+    //cerr << "Reading points for mesh: " << mlm_handle << endl;
     // Retrieve the mesh from the global mesh array
     mfem_laghos_mesh_t mlm = mlmv[mlm_handle];
     int eleCount = 0;
     int ptCount = 0;
 
+    //cerr << "BWS p1" << endl;
     // Read an element and attempt to add its vertexes as points
     const Element* const* elements = mlm.mesh->GetElementsArray();
     long long nEles = mlm.mesh->GetNE();
     Array<double> energies, densities, v_xs, v_ys, v_zs;
+    //cerr << "BWS p2" << endl;
     for (int i = *begin; i < nEles; i++) {
+        //cerr << "BWS looping i=" << i << endl;
         mlm.e_gf->GetNodalValues(i, energies, 1);
         mlm.rho_gf->GetNodalValues(i, densities, 1);
         mlm.v_gf->GetNodalValues(i, v_xs, 1);
@@ -93,9 +97,11 @@ int mfem_laghos_mesh_read(int mlm_handle, mfem_mesh_iterator_t* begin, laghos_me
         size_t nv = ele->GetNVertices();
 
         // If there is enough space for this element in the point array add it
+        //cerr << "BWS checking for space" << endl;
         if ((npoints - ptCount) >= nv) {
             const int* vertArray = ele->GetVertices();
             for (int j = 0; j < nv; j++) {
+                //cerr << "BWS writing point" << endl;
                 size_t dims = mlm.mesh->Dimension();
                 double* pos = mlm.mesh->GetVertex(vertArray[j]);
                 points[ptCount].element_id = i;
@@ -119,7 +125,9 @@ int mfem_laghos_mesh_read(int mlm_handle, mfem_mesh_iterator_t* begin, laghos_me
             break;
         }
     }
+    //cerr << "BWS p2" << endl;
     *begin += eleCount;
+    //cerr << "BWS p3" << endl;
     return ptCount;
 }
 
@@ -127,4 +135,18 @@ int mfem_laghos_mesh_at_end(int mlm_handle, const mfem_mesh_iterator_t* iter) {
     mfem_laghos_mesh_t mlm = mlmv[mlm_handle];
     long long nEles = mlm.mesh->GetNE();
     return (*iter >= nEles);
+}
+
+size_t mfem_laghos_mesh_get_num_elements(int mlm_handle) {
+    // Retrieve the mesh from the global mesh array
+    mfem_laghos_mesh_t mlm = mlmv[mlm_handle];
+    return mlm.mesh->GetNE();
+}
+
+size_t mfem_laghos_mesh_get_num_points(int mlm_handle) {
+    // Retrieve the mesh from the global mesh array
+    mfem_laghos_mesh_t mlm = mlmv[mlm_handle];
+    double dims = mlm.mesh->Dimension();
+    double eles = mlm.mesh->GetNE();
+    return size_t(std::pow(2.0, dims) * eles);
 }

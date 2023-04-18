@@ -29,14 +29,16 @@ public class IndexedMesh {
         long[] times = new long[2];
 
         try {
+            long totalPoints = lmr.getNumPoints();
             Directory tmp = FSDirectory.open(Paths.get("/tmp"));
             BKDConfig bCfg = new BKDConfig(LAGHOS_POINT_NDIMS, 8, 8, BKD_LEAF_POINTS);
-            BKDWriter bWriter = new BKDWriter(1, tmp, "laghos", bCfg, 4, TOTAL_LAGHOS_POINTS);
+            BKDWriter bWriter = new BKDWriter(1, tmp, "laghos", bCfg, 4, totalPoints);
 
             times[0] = System.nanoTime();
-            for (int i = 0; i < TOTAL_LAGHOS_POINTS; i++) {
-                byte[] pointBuffer = lmr.getNextLaghosPointAsBytes();
+            byte[] pointBuffer = lmr.getNextLaghosPointAsBytes();
+            while (pointBuffer != null) {
                 bWriter.add(pointBuffer, 0);
+                pointBuffer = lmr.getNextLaghosPointAsBytes();
             }
             bWriter.close();
             times[1] = System.nanoTime();
@@ -97,11 +99,11 @@ public class IndexedMesh {
         LaghosMeshReader lmr = loadMesh();
         System.out.println("Complete");
 
-        long[] times = runLuceneSingleTrial(lmr);
-        reportTime("Lucene BKWriter Dims=9 IdxDims=1 MaxPts=1024", times);
+        //long[] timeSingle = runLuceneSingleTrial(lmr);
+        //reportTime("Lucene BKWriter Dims=9 IdxDims=1 MaxPts=1024", timeSingle);
 
-        //long[] times = runLuceneMultiTrial(lmr);
-        //reportTime("Lucene BKWriter Dims=9 IdxDims=8 MaxPts=1024", times);
+        long[] timeMulti = runLuceneMultiTrial(lmr);
+        reportTime("Lucene BKWriter Dims=9 IdxDims=8 MaxPts=1024", timeMulti);
 
     }
 }

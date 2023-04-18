@@ -13,7 +13,7 @@ typedef struct laghos_mesh_point {
     size_t element_id;
 } laghos_mesh_point_t;
 
-typedef int mfem_mesh_iterator_t;
+typedef size_t mfem_mesh_iterator_t;
 
 /**
  * @return a handle to an MFEM mesh from Laghos
@@ -50,6 +50,20 @@ int mfem_laghos_mesh_read(int mhandle, mfem_mesh_iterator_t* cur, laghos_mesh_po
  * @param[in] the mesh iterator
  */
 int mfem_laghos_mesh_at_end(int mhandle, const mfem_mesh_iterator_t* cur);
+
+/**
+ * @return the number of mesh elements
+ * 
+ * @param[in] the mesh handle
+ */
+size_t mfem_laghos_mesh_get_num_elements(int mhandle);
+
+/**
+ * @return the number of mesh points
+ * 
+ * @param[in] the mesh handle
+ */
+size_t mfem_laghos_mesh_get_num_points(int mhandle);
 
 #ifdef __cplusplus
 }
