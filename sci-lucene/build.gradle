@@ -17,7 +17,8 @@ dependencies {
     implementation 'com.google.guava:guava:31.1-jre' 
     implementation group: 'net.java.dev.jna', name: 'jna', version: '5.13.0'
     implementation group: 'org.apache.lucene', name: 'lucene-core', version: '9.5.0'
-    implementation 'org.fusesource.leveldbjni:leveldbjni:1.8'
+    implementation group: 'org.rocksdb', name: 'rocksdbjni', version: '8.0.0'
+    implementation group: 'org.fusesource.leveldbjni', name: 'leveldbjni-all', version: '1.8'
 }
 
 application {

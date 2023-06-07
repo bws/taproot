@@ -79,6 +79,14 @@ public class LaghosMeshReader extends MFEMMeshReader {
         this.pointsBuffered = 0;
     };
 
+    /** Reset the mesh iterator to the first element */
+    public void resetIterator() {
+        this.meshIter = 0;
+        this.pointBegin = 0;
+        this.pointCurrent = 0;
+        this.pointsBuffered = 0;
+    }
+
     /** @return the number of mesh cells */
     public long getNumElements() {
         MFEMUtils lib = MFEMUtils.INSTANCE;

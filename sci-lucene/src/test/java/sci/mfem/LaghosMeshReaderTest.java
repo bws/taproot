@@ -16,20 +16,20 @@ class LaghosMeshReaderTest {
 
     @Test void TestLaghosMeshReader() {
         System.err.println("Working Directory = " + System.getProperty("user.dir"));
-        String meshFile = PROJECT_DATA_DIR + "/1m_mesh/snoise_60_mesh";
-        String eFile = PROJECT_DATA_DIR + "/1m_mesh/snoise_60_e";
-        String rhoFile = PROJECT_DATA_DIR + "/1m_mesh/snoise_60_rho";
-        String vFile = PROJECT_DATA_DIR + "/1m_mesh/snoise_60_v";
+        String meshFile = PROJECT_DATA_DIR + "/1m_mesh/1m_60_mesh";
+        String eFile = PROJECT_DATA_DIR + "/1m_mesh/1m_60_e";
+        String rhoFile = PROJECT_DATA_DIR + "/1m_mesh/1m_60_rho";
+        String vFile = PROJECT_DATA_DIR + "/1m_mesh/1m_60_v";
         LaghosMeshReader lmr = new LaghosMeshReader(meshFile, eFile, rhoFile, vFile);
         lmr.close();
         assertEquals(0, 0);
     }
     
     @Test void TestGetNumElements() {
-        String meshFile = PROJECT_DATA_DIR + "/1m_mesh/snoise_60_mesh";
-        String eFile = PROJECT_DATA_DIR + "/1m_mesh/snoise_60_e";
-        String rhoFile = PROJECT_DATA_DIR + "/1m_mesh/snoise_60_rho";
-        String vFile = PROJECT_DATA_DIR + "/1m_mesh/snoise_60_v";
+        String meshFile = PROJECT_DATA_DIR + "/1m_mesh/1m_60_mesh";
+        String eFile = PROJECT_DATA_DIR + "/1m_mesh/1m_60_e";
+        String rhoFile = PROJECT_DATA_DIR + "/1m_mesh/1m_60_rho";
+        String vFile = PROJECT_DATA_DIR + "/1m_mesh/1m_60_v";
         LaghosMeshReader lmr = new LaghosMeshReader(meshFile, eFile, rhoFile, vFile);
 
         // There should be 65536 elements
@@ -38,10 +38,10 @@ class LaghosMeshReaderTest {
     }
 
     @Test void TestGetNumPoints() {
-        String meshFile = PROJECT_DATA_DIR + "/1m_mesh/snoise_60_mesh";
-        String eFile = PROJECT_DATA_DIR + "/1m_mesh/snoise_60_e";
-        String rhoFile = PROJECT_DATA_DIR + "/1m_mesh/snoise_60_rho";
-        String vFile = PROJECT_DATA_DIR + "/1m_mesh/snoise_60_v";
+        String meshFile = PROJECT_DATA_DIR + "/1m_mesh/1m_60_mesh";
+        String eFile = PROJECT_DATA_DIR + "/1m_mesh/1m_60_e";
+        String rhoFile = PROJECT_DATA_DIR + "/1m_mesh/1m_60_rho";
+        String vFile = PROJECT_DATA_DIR + "/1m_mesh/1m_60_v";
         LaghosMeshReader lmr = new LaghosMeshReader(meshFile, eFile, rhoFile, vFile);
 
         // There should be 524288 points
@@ -51,10 +51,10 @@ class LaghosMeshReaderTest {
 
     @Test void TestGetNextPoint() {
         System.err.println("Working Directory = " + System.getProperty("user.dir"));
-        String meshFile = PROJECT_DATA_DIR + "/1m_mesh/snoise_60_mesh";
-        String eFile = PROJECT_DATA_DIR + "/1m_mesh/snoise_60_e";
-        String rhoFile = PROJECT_DATA_DIR + "/1m_mesh/snoise_60_rho";
-        String vFile = PROJECT_DATA_DIR + "/1m_mesh/snoise_60_v";
+        String meshFile = PROJECT_DATA_DIR + "/1m_mesh/1m_60_mesh";
+        String eFile = PROJECT_DATA_DIR + "/1m_mesh/1m_60_e";
+        String rhoFile = PROJECT_DATA_DIR + "/1m_mesh/1m_60_rho";
+        String vFile = PROJECT_DATA_DIR + "/1m_mesh/1m_60_v";
         LaghosMeshReader lmr = new LaghosMeshReader(meshFile, eFile, rhoFile, vFile);
 
         // There should be 65536 points
@@ -74,10 +74,10 @@ class LaghosMeshReaderTest {
     
     @Test void TestGetNextPointAsBytes() {
         System.err.println("Working Directory = " + System.getProperty("user.dir"));
-        String meshFile = PROJECT_DATA_DIR + "/1m_mesh/snoise_60_mesh";
-        String eFile = PROJECT_DATA_DIR + "/1m_mesh/snoise_60_e";
-        String rhoFile = PROJECT_DATA_DIR + "/1m_mesh/snoise_60_rho";
-        String vFile = PROJECT_DATA_DIR + "/1m_mesh/snoise_60_v";
+        String meshFile = PROJECT_DATA_DIR + "/1m_mesh/1m_60_mesh";
+        String eFile = PROJECT_DATA_DIR + "/1m_mesh/1m_60_e";
+        String rhoFile = PROJECT_DATA_DIR + "/1m_mesh/1m_60_rho";
+        String vFile = PROJECT_DATA_DIR + "/1m_mesh/1m_60_v";
         LaghosMeshReader lmr = new LaghosMeshReader(meshFile, eFile, rhoFile, vFile);
 
         // There should be 65536 point

@@ -72,20 +72,16 @@ int mfem_laghos_mesh_close(int mesh_handle) {
 }
 
 int mfem_laghos_mesh_read(int mlm_handle, mfem_mesh_iterator_t* begin, laghos_mesh_point_t* points, size_t npoints) {
-    //cerr << "Reading points for mesh: " << mlm_handle << endl;
     // Retrieve the mesh from the global mesh array
     mfem_laghos_mesh_t mlm = mlmv[mlm_handle];
     int eleCount = 0;
     int ptCount = 0;
 
-    //cerr << "BWS p1" << endl;
     // Read an element and attempt to add its vertexes as points
     const Element* const* elements = mlm.mesh->GetElementsArray();
     long long nEles = mlm.mesh->GetNE();
     Array<double> energies, densities, v_xs, v_ys, v_zs;
-    //cerr << "BWS p2" << endl;
     for (int i = *begin; i < nEles; i++) {
-        //cerr << "BWS looping i=" << i << endl;
         mlm.e_gf->GetNodalValues(i, energies, 1);
         mlm.rho_gf->GetNodalValues(i, densities, 1);
         mlm.v_gf->GetNodalValues(i, v_xs, 1);
@@ -97,7 +93,6 @@ int mfem_laghos_mesh_read(int mlm_handle, mfem_mesh_iterator_t* begin, laghos_me
         size_t nv = ele->GetNVertices();
 
         // If there is enough space for this element in the point array add it
-        //cerr << "BWS checking for space" << endl;
         if ((npoints - ptCount) >= nv) {
             const int* vertArray = ele->GetVertices();
             for (int j = 0; j < nv; j++) {
@@ -121,13 +116,11 @@ int mfem_laghos_mesh_read(int mlm_handle, mfem_mesh_iterator_t* begin, laghos_me
             eleCount += 1;
         }
         else {
-            //cerr << "Warning: Unable to pack last cell. Cell points req: " << ptCount << " Space avail: " << eleCount << endl;
+            // Don't add partial elements, so just end the loop
             break;
         }
     }
-    //cerr << "BWS p2" << endl;
     *begin += eleCount;
-    //cerr << "BWS p3" << endl;
     return ptCount;
 }
 
