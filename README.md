@@ -8,6 +8,7 @@ The available analysis stacks are:
 Apache Lucene
 Lawrence Berkeley Lab's Fastbit
 LevelDB
+Apache Arrow and Parquet
 
 # General Prerequisites
 You will need to either build Laghos and all of its pre-requisites to generate

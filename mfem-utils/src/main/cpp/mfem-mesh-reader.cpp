@@ -95,7 +95,7 @@ int mfem_laghos_mesh_read(int mlm_handle, mfem_mesh_iterator_t* begin, laghos_me
         // If there is enough space for this element in the point array add it
         if ((npoints - ptCount) >= nv) {
             const int* vertArray = ele->GetVertices();
-            for (int j = 0; j < nv; j++) {
+            for (size_t j = 0; j < nv; j++) {
                 //cerr << "BWS writing point" << endl;
                 size_t dims = mlm.mesh->Dimension();
                 double* pos = mlm.mesh->GetVertex(vertArray[j]);
@@ -126,7 +126,7 @@ int mfem_laghos_mesh_read(int mlm_handle, mfem_mesh_iterator_t* begin, laghos_me
 
 int mfem_laghos_mesh_at_end(int mlm_handle, const mfem_mesh_iterator_t* iter) {
     mfem_laghos_mesh_t mlm = mlmv[mlm_handle];
-    long long nEles = mlm.mesh->GetNE();
+    const long unsigned int nEles = mlm.mesh->GetNE();
     return (*iter >= nEles);
 }
 

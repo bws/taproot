@@ -32,10 +32,10 @@ int mfem_laghos_mesh_close(int lmhandle);
 /**
  * Read a portion of the globally distributed MFEM mesh
  *
- * @param[in] the mesh handle
- * @param[in,out] the mesh iterator pointing at the current element
- * @param[in,out] the point array to store mesh data into
- * @param[in] the number of points in the passed in point array
+ * @param[in] mhandle the mesh handle
+ * @param[in,out] cur the mesh iterator pointing at the current element
+ * @param[in,out] points the point array to store mesh data into
+ * @param[in] npoints the number of points in the passed in point array
  * @return the number of points stored in the in/out array
  * Note: An MFEM mesh element contains multiple vertices. Those
  *       vertices are laghos_mesh_points. This function will only read
@@ -46,22 +46,22 @@ int mfem_laghos_mesh_read(int mhandle, mfem_mesh_iterator_t* cur, laghos_mesh_po
 /**
  * @return true if all elements have been iterator over
  * 
- * @param[in] the mesh handle
- * @param[in] the mesh iterator
+ * @param[in] mhandle the mesh handle
+ * @param[in] cur the mesh iterator
  */
 int mfem_laghos_mesh_at_end(int mhandle, const mfem_mesh_iterator_t* cur);
 
 /**
  * @return the number of mesh elements
  * 
- * @param[in] the mesh handle
+ * @param[in] mhandle the mesh handle
  */
 size_t mfem_laghos_mesh_get_num_elements(int mhandle);
 
 /**
  * @return the number of mesh points
  * 
- * @param[in] the mesh handle
+ * @param[in] mhandle the mesh handle
  */
 size_t mfem_laghos_mesh_get_num_points(int mhandle);
 
