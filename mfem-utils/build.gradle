@@ -18,14 +18,14 @@ library {
     // Set the target operating system and architecture for this library
     targetMachines.add(machines.linux.x86_64)
     //linkage = Linkage.STATIC
+    source.from file("src/main/cpp/mfem-mesh-reader.cpp")
 }
 
 tasks.withType(CppCompile).configureEach {
     compilerArgs.add '-fPIC'
     compilerArgs.add '-g'
-    includes {
-        '/home/bsettlemyer/sw/wsl-x86_64/include'
-    }
+    compilerArgs.add '-I' + project.properties['mfem-utils.mfempath'] + '/include'
+    compilerArgs.add '-I' + project.properties['mfem-utils.arrowpath'] + '/include'
 
     compilerArgs.addAll toolChain.map { toolChain ->
         if (toolChain in [ Gcc, Clang ]) {
@@ -38,13 +38,20 @@ tasks.withType(CppCompile).configureEach {
 }
 
 tasks.withType(LinkSharedLibrary).configureEach {
-    linkerArgs.add '-L/home/bsettlemyer/sw/wsl-x86_64/lib'
-    linkerArgs.add '-Wl,-rpath=/home/bsettlemyer/sw/wsl-x86_64/lib'
+    linkerArgs.add '-L' + project.properties['mfem-utils.mfempath'] + '/lib'
+    linkerArgs.add '-L' + project.properties['mfem-utils.arrowpath'] + '/lib'
+    linkerArgs.add '-Wl,-rpath=' + project.properties['mfem-utils.rpath']
     linkerArgs.add '-lmfem'
+    linkerArgs.add '-larrow'
+    linkerArgs.add '-lparquet'
 }
 
 tasks.withType(LinkExecutable).configureEach {
-    linkerArgs.add '-L/home/bsettlemyer/sw/wsl-x86_64/lib'
-    linkerArgs.add '-Wl,-rpath=/home/bsettlemyer/sw/wsl-x86_64/lib'
+    linkerArgs.add '-L' + project.properties['mfem-utils.mfempath'] + '/lib'
+    linkerArgs.add '-L' + project.properties['mfem-utils.arrowpath'] + '/lib'
+    linkerArgs.add '-Wl,-rpath=' + project.properties['mfem-utils.rpath']
     linkerArgs.add '-lmfem'
+    linkerArgs.add '-larrow'
+    linkerArgs.add '-lparquet'
+    linkerArgs.add '-static'
 }

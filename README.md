@@ -30,7 +30,7 @@ arrays of Laghos mesh data.
   make install PREFIX=$SWHOME
   make install STATIC=YES SHARED=NO PREFIX=$SWHOME
 
-NOTE: The following CMake steps do not work with this version of MFEM.
+NOTE: The following CMake steps do *not* work with this version of MFEM.
   CMake installation does not work, these instructions will not enable -fPIC
   mkdir build
   cd build
@@ -55,19 +55,19 @@ The following steps describe how to build the taproot Lucene data analytics pack
   sdk install gradle 8.1.1
 
 ### Download and Build Apache Lucene version 10.0
-  Install OpenJDK 17 or 18
+  Install OpenJDK 17 or 18 (on ubuntu, usually update-alternatives --config java is sufficient)
   git clone https://github.com/apache/lucene
   cd lucene
   ./gradlew
 
 ## Other planned support
-Fastbit and PrestoDB support are not yet enabled.
+Fastbit and TrinoDB support are not yet enabled.
 
 # Building Taproot Components
 
 ## Configure Taproot to use Lucene Indexing capability
   cd taproot
-  Edit build.gradle to set the path to MFEM
+  Edit gradle.properties to set the path to MFEM and Arrow
 
 ### Build Taproot Lucene MFEM Utils
   ./gradlew build
@@ -91,9 +91,11 @@ Fastbit and PrestoDB support are not yet enabled.
   cmake --build -j 1
 
 ## Converting MFEM data to Parquet
-  $SWHOME/bin/mfem2parquet mfem_dir parquet_dir
+  $SWHOME/bin/mfem2parquet -s flat|custom|trino mfem_dir parquet_dir
 
 ## Generate a fastbit index
   TODO: ./taproot-create-fastbit-index -i <mesh_dir> -o <index dir>
   TODO: ./taproot-select-fastbit -i <index dir> -q <query>
+
+  ## Generate a KDTree index
 

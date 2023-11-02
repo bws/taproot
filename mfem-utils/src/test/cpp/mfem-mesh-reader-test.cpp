@@ -16,11 +16,11 @@ const char* EXTERNAL_DATA_DIR = "../../../../../mesh";
 
 
 void test_mfem_laghos_mesh_open() {
-    string meshDir = string(PROJECT_ROOT_DIR) + "/data/1m_mesh";
-    string meshFile = string(meshDir) + string("/1m_60_mesh"); 
-    string eGFFile = string(meshDir) + string("/1m_60_e"); 
-    string rhoGFFile = string(meshDir) + string("/1m_60_rho"); 
-    string vGFFile = string(meshDir) + string("/1m_60_v"); 
+    string meshDir = string(PROJECT_ROOT_DIR) + "/data/1m_points";
+    string meshFile = string(meshDir) + string("/1m_points_mesh"); 
+    string eGFFile = string(meshDir) + string("/1m_points_e"); 
+    string rhoGFFile = string(meshDir) + string("/1m_points_rho"); 
+    string vGFFile = string(meshDir) + string("/1m_points_v"); 
     int mh = mfem_laghos_mesh_open(meshFile.c_str(), 
                                    eGFFile.c_str(), 
                                    rhoGFFile.c_str(), 
@@ -31,11 +31,11 @@ void test_mfem_laghos_mesh_open() {
 }
 
 void test_mfem_laghos_mesh_close() {
-    string meshDir = string(PROJECT_ROOT_DIR) + "/data/1m_mesh";
-    string meshFile = string(meshDir) + string("/1m_60_mesh"); 
-    string eGFFile = string(meshDir) + string("/1m_60_e"); 
-    string rhoGFFile = string(meshDir) + string("/1m_60_rho"); 
-    string vGFFile = string(meshDir) + string("/1m_60_v"); 
+    string meshDir = string(PROJECT_ROOT_DIR) + "/data/1m_points";
+    string meshFile = string(meshDir) + string("/1m_points_mesh"); 
+    string eGFFile = string(meshDir) + string("/1m_points_e"); 
+    string rhoGFFile = string(meshDir) + string("/1m_points_rho"); 
+    string vGFFile = string(meshDir) + string("/1m_points_v"); 
     int mh = mfem_laghos_mesh_open(meshFile.c_str(), 
                                    eGFFile.c_str(), 
                                    rhoGFFile.c_str(), 
@@ -47,11 +47,11 @@ void test_mfem_laghos_mesh_close() {
 }
 
 void test_mfem_laghos_mesh_read() {
-    string meshDir = string(PROJECT_ROOT_DIR) + "/data/1m_mesh";
-    string meshFile = string(meshDir) + string("/1m_60_mesh"); 
-    string eGFFile = string(meshDir) + string("/1m_60_e"); 
-    string rhoGFFile = string(meshDir) + string("/1m_60_rho"); 
-    string vGFFile = string(meshDir) + string("/1m_60_v"); 
+    string meshDir = string(PROJECT_ROOT_DIR) + "/data/1m_points";
+    string meshFile = string(meshDir) + string("/1m_points_mesh"); 
+    string eGFFile = string(meshDir) + string("/1m_points_e"); 
+    string rhoGFFile = string(meshDir) + string("/1m_points_rho"); 
+    string vGFFile = string(meshDir) + string("/1m_points_v"); 
     int mh = mfem_laghos_mesh_open(meshFile.c_str(), 
                                    eGFFile.c_str(), 
                                    rhoGFFile.c_str(), 
@@ -87,11 +87,11 @@ void test_mfem_laghos_mesh_read() {
 }
 
 void test_mfem_laghos_mesh_at_end() {
-    string meshDir = string(PROJECT_ROOT_DIR) + "/data/1m_mesh";
-    string meshFile = string(meshDir) + string("/1m_60_mesh"); 
-    string eGFFile = string(meshDir) + string("/1m_60_e"); 
-    string rhoGFFile = string(meshDir) + string("/1m_60_rho"); 
-    string vGFFile = string(meshDir) + string("/1m_60_v"); 
+    string meshDir = string(PROJECT_ROOT_DIR) + "/data/1m_points";
+    string meshFile = string(meshDir) + string("/1m_points_mesh"); 
+    string eGFFile = string(meshDir) + string("/1m_points_e"); 
+    string rhoGFFile = string(meshDir) + string("/1m_points_rho"); 
+    string vGFFile = string(meshDir) + string("/1m_points_v"); 
     int mh = mfem_laghos_mesh_open(meshFile.c_str(), 
                                    eGFFile.c_str(), 
                                    rhoGFFile.c_str(), 
@@ -116,11 +116,11 @@ void test_mfem_laghos_mesh_at_end() {
 }
 
 void test_mfem_laghos_mesh_get_num_elements() {
-    string meshDir = string(PROJECT_ROOT_DIR) + "/data/1m_mesh";
-    string meshFile = string(meshDir) + string("/1m_60_mesh"); 
-    string eGFFile = string(meshDir) + string("/1m_60_e"); 
-    string rhoGFFile = string(meshDir) + string("/1m_60_rho"); 
-    string vGFFile = string(meshDir) + string("/1m_60_v"); 
+    string meshDir = string(PROJECT_ROOT_DIR) + "/data/1m_points";
+    string meshFile = string(meshDir) + string("/1m_points_mesh"); 
+    string eGFFile = string(meshDir) + string("/1m_points_e"); 
+    string rhoGFFile = string(meshDir) + string("/1m_points_rho"); 
+    string vGFFile = string(meshDir) + string("/1m_points_v"); 
     int mh = mfem_laghos_mesh_open(meshFile.c_str(), 
                                    eGFFile.c_str(), 
                                    rhoGFFile.c_str(), 
@@ -131,11 +131,11 @@ void test_mfem_laghos_mesh_get_num_elements() {
 }
 
 void test_mfem_laghos_mesh_get_num_points() {
-    string meshDir = string(PROJECT_ROOT_DIR) + "/data/1m_mesh";
-    string meshFile = string(meshDir) + string("/1m_60_mesh"); 
-    string eGFFile = string(meshDir) + string("/1m_60_e"); 
-    string rhoGFFile = string(meshDir) + string("/1m_60_rho"); 
-    string vGFFile = string(meshDir) + string("/1m_60_v"); 
+    string meshDir = string(PROJECT_ROOT_DIR) + "/data/1m_points";
+    string meshFile = string(meshDir) + string("/1m_points_mesh"); 
+    string eGFFile = string(meshDir) + string("/1m_points_e"); 
+    string rhoGFFile = string(meshDir) + string("/1m_points_rho"); 
+    string vGFFile = string(meshDir) + string("/1m_points_v"); 
     int mh = mfem_laghos_mesh_open(meshFile.c_str(), 
                                    eGFFile.c_str(), 
                                    rhoGFFile.c_str(), 
