@@ -13,10 +13,12 @@ add_executable(${MFEM_TO_PARQUET_EXE} src/main/cpp/mfem2parquet.cpp)
 target_include_directories(${MFEM_TO_PARQUET_EXE} PUBLIC ${MFEM_UTILS_INCLUDE_DIR})
 target_include_directories(${MFEM_TO_PARQUET_EXE} PUBLIC ${MFEM_INCLUDE_DIRS})
 target_include_directories(${MFEM_TO_PARQUET_EXE} PUBLIC ${PARQUET_INCLUDE_DIRS})
+target_include_directories(${MFEM_TO_PARQUET_EXE} PUBLIC ${BOOST_INCLUDE_DIRS})
 target_link_libraries(${MFEM_TO_PARQUET_EXE} PUBLIC ${MFEM_UTILS_LIB})
 target_link_libraries(${MFEM_TO_PARQUET_EXE} PUBLIC Arrow::arrow_static)
 target_link_libraries(${MFEM_TO_PARQUET_EXE} PUBLIC Parquet::parquet_static)
 target_link_libraries(${MFEM_TO_PARQUET_EXE} PUBLIC ${MFEM_LIB})
+target_link_libraries(${MFEM_TO_PARQUET_EXE} PUBLIC Boost::program_options)
 
 #
 # Define the mfem-utils library

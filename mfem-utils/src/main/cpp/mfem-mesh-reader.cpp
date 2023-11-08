@@ -1,5 +1,7 @@
 #include <iostream>
 #include <cmath>
+#include <cstdlib>
+#include <cstring>
 #include <vector>
 #include <mfem.hpp>
 #include <mfem/fem/fespace.hpp>
@@ -8,6 +10,8 @@
 using namespace std;
 using namespace mfem;
 
+/** Set the default number of visited verts supported */
+#define DEFAULT_NVV (1*1024*1024)
 
 /** MFEM data required to create a Laghos Mesh */
 typedef struct mfem_laghos_mesh {
@@ -71,7 +75,38 @@ int mfem_laghos_mesh_close(int mesh_handle) {
     return 0;
 }
 
-int mfem_laghos_mesh_read(int mlm_handle, mfem_mesh_iterator_t* begin, laghos_mesh_point_t* points, size_t npoints) {
+int mfem_mesh_iterator_init(mfem_mesh_iterator *iter) {
+    iter->cur_idx = 0;
+    iter->nvv = DEFAULT_NVV;
+    iter->visited_verts = new uint8_t[iter->nvv];
+    return 0;
+}
+
+int mfem_mesh_iterator_grow(mfem_mesh_iterator *iter, size_t new_size) {
+    /* Double the size of the visited vert array until it greater than new_size */
+    size_t new_nvv = 2 * iter->nvv;
+    while (new_nvv < new_size) {
+        new_nvv *= 2;
+    }
+
+    /* Create the new visited verts array*/
+    uint8_t *new_verts = new uint8_t[new_nvv];
+    memcpy(new_verts, iter->visited_verts, iter->nvv);
+    delete [] iter->visited_verts;
+
+    /* Update the iterator */
+    iter->nvv = new_nvv;
+    iter->visited_verts = new_verts;
+    return 0;
+}
+
+void mfem_mesh_iterator_destroy(mfem_mesh_iterator *iter) {
+    delete [] iter->visited_verts;
+    iter->nvv = 0;
+    iter->cur_idx = SIZE_MAX;
+}
+
+int mfem_laghos_mesh_read_points(int mlm_handle, mfem_mesh_iterator_t* begin, laghos_mesh_point_t* points, size_t npoints) {
     // Retrieve the mesh from the global mesh array
     mfem_laghos_mesh_t mlm = mlmv[mlm_handle];
     int eleCount = 0;
@@ -81,7 +116,7 @@ int mfem_laghos_mesh_read(int mlm_handle, mfem_mesh_iterator_t* begin, laghos_me
     const Element* const* elements = mlm.mesh->GetElementsArray();
     long long nEles = mlm.mesh->GetNE();
     Array<double> energies, densities, v_xs, v_ys, v_zs;
-    for (int i = *begin; i < nEles; i++) {
+    for (int i = begin->cur_idx; i < nEles; i++) {
         mlm.e_gf->GetNodalValues(i, energies, 1);
         mlm.rho_gf->GetNodalValues(i, densities, 1);
         mlm.v_gf->GetNodalValues(i, v_xs, 1);
@@ -96,10 +131,10 @@ int mfem_laghos_mesh_read(int mlm_handle, mfem_mesh_iterator_t* begin, laghos_me
         if ((npoints - ptCount) >= nv) {
             const int* vertArray = ele->GetVertices();
             for (size_t j = 0; j < nv; j++) {
-                //cerr << "BWS writing point" << endl;
                 size_t dims = mlm.mesh->Dimension();
                 double* pos = mlm.mesh->GetVertex(vertArray[j]);
                 points[ptCount].element_id = i;
+                points[ptCount].vertex_id = vertArray[j];
                 if (1 <= dims)
                     points[ptCount].x = pos[0];
                 if (2 <= dims)
@@ -120,14 +155,14 @@ int mfem_laghos_mesh_read(int mlm_handle, mfem_mesh_iterator_t* begin, laghos_me
             break;
         }
     }
-    *begin += eleCount;
+    begin->cur_idx += eleCount;
     return ptCount;
 }
 
 int mfem_laghos_mesh_at_end(int mlm_handle, const mfem_mesh_iterator_t* iter) {
     mfem_laghos_mesh_t mlm = mlmv[mlm_handle];
     const long unsigned int nEles = mlm.mesh->GetNE();
-    return (*iter >= nEles);
+    return (iter->cur_idx >= nEles);
 }
 
 size_t mfem_laghos_mesh_get_num_elements(int mlm_handle) {

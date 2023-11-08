@@ -60,8 +60,8 @@ void test_mfem_laghos_mesh_read() {
 
     // Read the first 128 mesh elements into an array
     laghos_mesh_point_t points[65536] = {0};
-    mfem_mesh_iterator_t iter = 0;
-    int count = mfem_laghos_mesh_read(mh, &iter, points, 128);
+    mfem_mesh_iterator_t iter = {0};
+    int count = mfem_laghos_mesh_read_points(mh, &iter, points, 128);
     assert(128 == count);
     for (int i = 0; i < count; i++) {
         assert(0 != points[i].x);
@@ -73,13 +73,13 @@ void test_mfem_laghos_mesh_read() {
         assert(0 != points[i].v_y);
         assert(0 != points[i].v_z);
     }
-    assert(16 == iter);
+    assert(16 == iter.cur_idx);
 
     // Read through the remaining points 65536 at a time
     while (!mfem_laghos_mesh_at_end(mh, &iter)) {
-        count = mfem_laghos_mesh_read(mh, &iter, points, 2048);
+        count = mfem_laghos_mesh_read_points(mh, &iter, points, 2048);
     }
-    assert(65536 == iter);
+    assert(65536 == iter.cur_idx);
 
     int rc = mfem_laghos_mesh_close(mh);
     assert(rc == 0);
@@ -99,16 +99,19 @@ void test_mfem_laghos_mesh_at_end() {
     size_t ele_count = 65536;
 
     // Test at the beginning
-    mfem_mesh_iterator_t begin = 0;
-    assert(false == mfem_laghos_mesh_at_end(mh, &begin));
+    mfem_mesh_iterator_t iter_begin;
+    iter_begin.cur_idx = 0;
+    assert(false == mfem_laghos_mesh_at_end(mh, &iter_begin));
 
     // Test at the last valid index
-    mfem_mesh_iterator_t last_valid = ele_count - 1;
+    mfem_mesh_iterator_t last_valid;
+    last_valid.cur_idx = ele_count - 1;
     assert(false == mfem_laghos_mesh_at_end(mh, &last_valid));
 
     // Test beyond the index
-    mfem_mesh_iterator_t end = ele_count;
-    assert(true == mfem_laghos_mesh_at_end(mh, &end));
+    mfem_mesh_iterator_t iter_end;
+    iter_end.cur_idx = ele_count;
+    assert(true == mfem_laghos_mesh_at_end(mh, &iter_end));
 
     int rc = mfem_laghos_mesh_close(mh);
     assert(rc == 0);
@@ -159,12 +162,12 @@ void test_mfem_laghos_mesh_read_30m() {
 
     // Read through all of the points
     laghos_mesh_point_t points[65536] = {0};
-    mfem_mesh_iterator_t iter = 0;
-    int count = 0;
+    mfem_mesh_iterator_t iter;
+    int count = mfem_mesh_iterator_init(&iter);
     while (!mfem_laghos_mesh_at_end(mh, &iter)) {
-        count = mfem_laghos_mesh_read(mh, &iter, points, 2048);
+        count = mfem_laghos_mesh_read_points(mh, &iter, points, 2048);
     }
-    assert(4194304 == iter);
+    assert(4194304 == iter.cur_idx);
 
     int rc = mfem_laghos_mesh_close(mh);
     assert(rc == 0);

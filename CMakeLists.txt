@@ -53,6 +53,18 @@ list(APPEND PC_LIBS ${MPI_CXX_LIBRARIES})
 list(APPEND PC_STATIC_LIBS ${MPI_CXX_LIBRARIES})
 
 #
+# Configure Boost
+#
+find_package(Boost REQUIRED COMPONENTS program_options)
+if (Boost_FOUND)
+  set(BOOST_INCLUDE_DIRS "${Boost_INCLUDE_DIRS}")
+  set(BOOST_LIB_DIRS "${Boost_LIBRARY_DIRS}")
+  message(STATUS "Boost enabled")
+else()
+  message(STATUS "Boost disabled")
+endif()
+
+#
 # Arrow Support -- we rely on Arrow's Parquet support
 #
 option(TAPROOT_ENABLE_ARROW "Use Apache Arrow" On)
@@ -72,7 +84,6 @@ endif()
 find_package(Parquet REQUIRED)
 if (Parquet_FOUND)
   set(PARQUET_INCLUDE_DIRS "${Parquet_DIR}/include")
-  set(PARQUET_LIB_DIR "${Parquet_DIR}/lib")
   set(PARQUET_LIB_DIR "${Parquet_DIR}/lib")
   message(STATUS "Parquet enabled")
 else()

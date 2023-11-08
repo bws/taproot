@@ -2,6 +2,7 @@
 #include <filesystem>
 #include <iostream>
 #include <string>
+#include <boost/program_options.hpp>
 #include <arrow/api.h>
 #include <arrow/io/api.h>
 #include <arrow/io/file.h>
@@ -12,8 +13,22 @@
 #include "mfem-mesh-reader.h"
 using namespace std;
 using namespace arrow;
+namespace po = boost::program_options;
 
 const size_t DEFAULT_BUF_SZ = 16*1024*1024;
+
+// Boost option parsing stuff
+po::options_description optdesc;
+po::variables_map optvars;
+
+void parse_options(int argc, char** argv) {
+    optdesc.add_options()
+        ("help,h", "display this help message")
+        ("schema,s", po::value<string>(), "display this help message");
+
+    po::store(po::parse_command_line(argc, argv, optdesc), optvars);
+    po::notify(optvars);
+}
 
 void show_usage(const string& exeName) {
     cerr << "Usage: " << exeName << " mfem_dir parquet_dir\n";
@@ -126,6 +141,7 @@ bool processChunk(int mfemHandle, mfem_mesh_iterator_t* iter, parquet::StreamWri
 
 int main(int argc, char **argv) {
 
+    parse_options(argc, argv);
     string inputDir = argv[1];
     string outputDir = argv[2];
 
