@@ -9,8 +9,32 @@ Apache Lucene
 Lawrence Berkeley Lab's Fastbit
 LevelDB
 Apache Arrow and Parquet
+DuckDB
+TrinoDB
 
-# General Prerequisites
+# Taproot Quickstart Guide
+## Just Build Taproot
+Assuming you have everything else configured, maybe you *just* want to build taproot.
+
+Do this:
+Edit gradle.properties to point at the install path for components
+./gradlew build
+mkdir build
+cd build
+cmake ..
+cmake --build .
+
+## Just run Taproot
+cd data/1m_points
+gzip *
+cd ../../build
+mfem2parquet -s 0 ../data/1m_points test.parquet
+duckdb test.parquet
+
+# General Prerequisites and Taproot Dependencies
+If you haven't built Taproot before, you'll need to access several supporting
+packages to generate data, etc.
+
 You will need to either build Laghos and all of its pre-requisites to generate
 a Laghos-formatted MFEM mesh, or if you already have a Laghos mesh stored in
 files you can simply build a serial version of MFEM and use that to construct 
@@ -59,6 +83,8 @@ The following steps describe how to build the taproot Lucene data analytics pack
   git clone https://github.com/apache/lucene
   cd lucene
   ./gradlew
+
+### Build and Install TrinoDB
 
 ## Other planned support
 Fastbit and TrinoDB support are not yet enabled.
