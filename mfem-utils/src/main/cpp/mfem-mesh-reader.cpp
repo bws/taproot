@@ -15,14 +15,14 @@ using namespace mfem;
 
 /** MFEM data required to create a Laghos Mesh */
 typedef struct mfem_laghos_mesh {
-    Mesh* mesh;
-    GridFunction* e_gf;
-    GridFunction* rho_gf;
-    GridFunction* v_gf;
-    GridFunction* x_gf;
-    FiniteElementSpace* e_fes;
-    FiniteElementSpace* rho_fes;
-    FiniteElementSpace* v_fes;
+    Mesh* mesh = 0;
+    GridFunction* e_gf = 0;
+    GridFunction* rho_gf = 0;
+    GridFunction* v_gf = 0;
+    GridFunction* x_gf = 0;
+    FiniteElementSpace* e_fes = 0;
+    FiniteElementSpace* rho_fes = 0;
+    FiniteElementSpace* v_fes = 0;
 } mfem_laghos_mesh_t;
 
 static std::vector<Mesh*> meshes;
@@ -42,7 +42,7 @@ int mfem_mesh_close(int mesh_handle) {
 }
 
 int mfem_laghos_mesh_open(const char* mesh_file, const char* e_gf_file, const char* rho_gf_file, const char* v_gf_file) {
-    mfem_laghos_mesh_t lm = {0};
+    mfem_laghos_mesh_t lm;
     int handle = mlmv.size();
 
     // Create the mesh

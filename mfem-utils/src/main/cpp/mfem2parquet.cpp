@@ -17,21 +17,36 @@ namespace po = boost::program_options;
 
 const size_t DEFAULT_BUF_SZ = 16*1024*1024;
 
+enum MFEM_LAGHOS_SCHEMA {
+    INVALID = 0,
+    FLAT = 1,
+    FULL = 2
+};
+
 // Boost option parsing stuff
-po::options_description optdesc;
 po::variables_map optvars;
 
 void parse_options(int argc, char** argv) {
+    po::options_description optdesc;
     optdesc.add_options()
-        ("help,h", "display this help message")
-        ("schema,s", po::value<string>(), "display this help message");
+        ("help,h", "Usage: cmd -s schema input_dir output_dir")
+        ("input-dir,i", po::value<string>(), "Usage: cmd -s schema input_dir output_dir")
+        ("output-dir,o", po::value<string>(), "Usage: cmd -s schema input_dir output_dir")
+        ("schema,s", po::value<int>()->default_value(0), "0 for flat, 1 for complex");
 
-    po::store(po::parse_command_line(argc, argv, optdesc), optvars);
+    po::positional_options_description posdesc;
+    posdesc.add("input-dir", 1);
+    posdesc.add("output-dir", 1);
+
+    po::store(po::command_line_parser(argc, argv).
+                options(optdesc).
+                positional(posdesc).run(), 
+              optvars);
     po::notify(optvars);
 }
 
 void show_usage(const string& exeName) {
-    cerr << "Usage: " << exeName << " mfem_dir parquet_dir\n";
+    cerr << "[ERROR] Usage: " << exeName << " mfem_dir parquet_dir\n";
 }
 
 int open_mfem_mesh(const string& mfemDirString) {
@@ -53,7 +68,9 @@ int open_mfem_mesh(const string& mfemDirString) {
     return mh;
 }
 
-/** @return the flat Arrow schema */
+/** 
+ * @return the flat Arrow schema 
+ */
 shared_ptr<arrow::Schema> get_arrow_flat_schema() {
     arrow::FieldVector fields = {arrow::field("x", arrow::float64()),
                                  arrow::field("y", arrow::float64()),
@@ -68,10 +85,17 @@ shared_ptr<arrow::Schema> get_arrow_flat_schema() {
     return flatSchema;
 }
 
-/** @return the flat Parquet schema */
+/** 
+ * @return the flat Parquet schema 
+ */
 shared_ptr<parquet::schema::GroupNode> get_parquet_flat_schema() {
     // Create the parquet schema
+    int fidx=1;
     parquet::schema::NodeVector fields;
+    fields.push_back(parquet::schema::GroupNode::Make(
+        "elementId", parquet::Repetition::REQUIRED, parquet::LogicalType::Int(64, false), parquet::Type::INT64), fidx++);
+    fields.push_back(parquet::schema::PrimitiveNode::Make(
+        "vertexId", parquet::Repetition::REQUIRED, parquet::LogicalType::Int(64, false), parquet::Type::INT64));
     fields.push_back(parquet::schema::PrimitiveNode::Make(
         "x", parquet::Repetition::REQUIRED, parquet::Type::DOUBLE));
     fields.push_back(parquet::schema::PrimitiveNode::Make(
@@ -88,13 +112,13 @@ shared_ptr<parquet::schema::GroupNode> get_parquet_flat_schema() {
         "v_y", parquet::Repetition::REQUIRED, parquet::Type::DOUBLE));
     fields.push_back(parquet::schema::PrimitiveNode::Make(
         "v_z", parquet::Repetition::REQUIRED, parquet::Type::DOUBLE));
-    fields.push_back(parquet::schema::PrimitiveNode::Make(
-        "elementId", parquet::Repetition::REQUIRED, parquet::LogicalType::Int(64, false), parquet::Type::INT64));
-
     parquet::schema::NodePtr schemaNode = parquet::schema::GroupNode::Make("flat", parquet::Repetition::REQUIRED, fields);
     return static_pointer_cast<parquet::schema::GroupNode>(schemaNode);
 }
 
+/**
+ * @return the writer used to create the parquet output
+ */
 parquet::StreamWriter create_flat_parquet_writer(const string& outputDir) {
 
     // Set the Parquet RowGroup properties
@@ -120,15 +144,16 @@ bool processChunk(int mfemHandle, mfem_mesh_iterator_t* iter, parquet::StreamWri
 
     // Fill the buffer with mfem data
     int rpoints = 0;
-    rpoints = mfem_laghos_mesh_read(mfemHandle, iter, points, npoints);
+    rpoints = mfem_laghos_mesh_read_points(mfemHandle, iter, points, npoints);
 
     // Write the data with Arrow Parquet (this must be the slowest possible way)
     for (int i = 0; i < rpoints; i++) {
         laghos_mesh_point_t* pt = points + i;
-        pWriter << pt->x << pt->y << pt->z 
+        pWriter << pt->element_id 
+                << pt->vertex_id 
+                << pt->x << pt->y << pt->z 
                 << pt->e << pt->rho 
                 << pt->v_x << pt->v_y << pt->v_z
-                << pt->element_id 
                 << parquet::EndRow;
     }
 
@@ -142,10 +167,18 @@ bool processChunk(int mfemHandle, mfem_mesh_iterator_t* iter, parquet::StreamWri
 int main(int argc, char **argv) {
 
     parse_options(argc, argv);
-    string inputDir = argv[1];
-    string outputDir = argv[2];
 
-    if (argc < 3 || 0 == inputDir.length() || 0 == outputDir.length()) {
+    // Parse the arguments
+    int schema = -1;
+    string inputDir, outputDir;
+    if (optvars.count("schema") &&
+        optvars.count("input-dir") &&
+        optvars.count("output-dir")) {
+        schema = optvars["schema"].as<int>() + 1;
+        inputDir = optvars["input-dir"].as<string>();
+        outputDir = optvars["output-dir"].as<string>();
+        cout << "[INFO] Input Dir: " << inputDir << " Output Dir:" << outputDir << " Schema: " << schema << endl;
+    } else {
         show_usage(argv[0]);
         return 1;
     }
@@ -157,24 +190,34 @@ int main(int argc, char **argv) {
         return 2;
     }
 
-    // Create the empty parquet dataset
-    parquet::StreamWriter pWriter = create_flat_parquet_writer(outputDir);
+    // Create the schema specific pieces
+    parquet::StreamWriter pWriter;
+    if (schema == MFEM_LAGHOS_SCHEMA::FLAT) {
+        pWriter = create_flat_parquet_writer(outputDir);
 
-    // Create the processing buffer
-    size_t numPoints = DEFAULT_BUF_SZ / sizeof(laghos_mesh_point_t);
-    laghos_mesh_point *pointsBuf = new laghos_mesh_point[numPoints];
+        // Create the processing buffer
+        size_t numPoints = DEFAULT_BUF_SZ / sizeof(laghos_mesh_point_t);
+        laghos_mesh_point *pointsBuf = new laghos_mesh_point[numPoints];
 
-    // Process the data to convert MFEM data to Parquet data
-    mfem_mesh_iterator_t iter;
-    bool moreData = processChunk(mh, &iter, pWriter, pointsBuf, numPoints);
-    while (moreData) {
-        moreData = processChunk(mh, &iter, pWriter, pointsBuf, numPoints);
+        // Process the data to convert MFEM data to Parquet data
+        mfem_mesh_iterator_t iter;
+        mfem_mesh_iterator_init(&iter);
+        bool moreData = processChunk(mh, &iter, pWriter, pointsBuf, numPoints);
+        while (moreData) {
+            moreData = processChunk(mh, &iter, pWriter, pointsBuf, numPoints);
+        }
+        pWriter << parquet::EndRowGroup;
+
+        // Cleanup the mesh point buffer
+        delete [] pointsBuf;
+    } else if (schema == MFEM_LAGHOS_SCHEMA::FULL) {
+        //pWriter = create_full_parquet_writer(outputDir);
+        cerr << "[Warning] Invalid output schema requested\n";
+    } else {
+        cerr << "[ERROR] Invalid output schema requested\n";
+        return 1;
     }
-    pWriter << parquet::EndRowGroup;
 
-    // Cleanup the mesh point buffer
-    delete [] pointsBuf;
-
-    cout << "Parquet dataset written to: " << outputDir << endl;
+    cout << "[INFO] Parquet dataset written to: " << outputDir << endl;
     return 0;
 }
