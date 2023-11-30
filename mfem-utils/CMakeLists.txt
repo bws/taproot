@@ -17,7 +17,7 @@ target_include_directories(${MFEM_TO_PARQUET_EXE} PUBLIC ${BOOST_INCLUDE_DIRS})
 target_link_libraries(${MFEM_TO_PARQUET_EXE} PUBLIC ${MFEM_UTILS_LIB})
 target_link_libraries(${MFEM_TO_PARQUET_EXE} PUBLIC Arrow::arrow_static)
 target_link_libraries(${MFEM_TO_PARQUET_EXE} PUBLIC Parquet::parquet_static)
-target_link_libraries(${MFEM_TO_PARQUET_EXE} PUBLIC ${MFEM_LIB})
+target_link_libraries(${MFEM_TO_PARQUET_EXE} PUBLIC ${MFEM_IMPORT_LIB})
 target_link_libraries(${MFEM_TO_PARQUET_EXE} PUBLIC Boost::program_options)
 
 #
