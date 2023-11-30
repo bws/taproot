@@ -50,16 +50,15 @@ arrays of Laghos mesh data.
   * Note that to use MFEM with Lucene it is necessary to build MFEM so that it can
   * be linked dynamically. By default these steps do not occur.
 ```
-  wget https://bit.ly/mfem-4-5
+  wget -c https://bit.ly/mfem-4-5 -O mfem-4.5.tgz
   tar xvfz mfem-4.5.tgz
   cd mfem-4.5
-  cp config/defaults.mk config/user.mk
-  edit config/user.mk PREFIX, SHARED=yes
+  edit config/defaults.mk PREFIX=${SWHOME}, SHARED=yes
   make config BUILD_DIR=build
   cd build
-  make -j 2 serial
-  make install PREFIX=$SWHOME
-  make install STATIC=YES SHARED=NO PREFIX=$SWHOME
+  make -j 4 serial
+  make PREFIX=$SWHOME SHARED=YES install
+  make STATIC=YES PREFIX=$SWHOME install
 ```
 
 NOTE: The following CMake steps do *not* work with this version of MFEM.
@@ -73,10 +72,12 @@ NOTE: The following CMake steps do *not* work with this version of MFEM.
 
 ## Build Apache Arrow C++ with Parquet support
 ```
-  git clone
+  git clone git@github.com:apache/arrow.git
+  cd arrow
   git checkout apache-arrow-13.0.0
-  cd arrow-cpp
+  cd cpp
   mkdir -p build
+  cd build
   cmake .. --preset ninja-debug -DARROW_BUILD_STATIC=ON -DARROW_BUILD_EXAMPLES=ON -DPARQUET_BUILD_EXECUTABLES=ON
   cmake --build . -j 2
   cmake --install . --prefix $SWHOME
@@ -135,10 +136,12 @@ Fastbit and TrinoDB support are not yet enabled.
 
 ## Build the Taproot Parquet
 ```
+  sudo apt-get install libboost-all-dev
   cd TAPROOT_DIR
   mkdir build
-  cmake .. -DARROW_DIR=$SWHOME
-  cmake --build -j 1
+  cd build
+  cmake .. -DARROW_DIR=$SWHOME -DMFEM_DIR=$SWHOME
+  cmake --build . -j 1
 ```
 
 ## Converting MFEM data to Parquet

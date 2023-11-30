@@ -90,10 +90,9 @@ shared_ptr<arrow::Schema> get_arrow_flat_schema() {
  */
 shared_ptr<parquet::schema::GroupNode> get_parquet_flat_schema() {
     // Create the parquet schema
-    int fidx=1;
     parquet::schema::NodeVector fields;
-    fields.push_back(parquet::schema::GroupNode::Make(
-        "elementId", parquet::Repetition::REQUIRED, parquet::LogicalType::Int(64, false), parquet::Type::INT64), fidx++);
+    fields.push_back(parquet::schema::PrimitiveNode::Make(
+        "elementId", parquet::Repetition::REQUIRED, parquet::LogicalType::Int(64, false), parquet::Type::INT64));
     fields.push_back(parquet::schema::PrimitiveNode::Make(
         "vertexId", parquet::Repetition::REQUIRED, parquet::LogicalType::Int(64, false), parquet::Type::INT64));
     fields.push_back(parquet::schema::PrimitiveNode::Make(
